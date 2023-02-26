@@ -37,6 +37,7 @@ def summarize(query: str=None):
 
     # Summarize the article using OpenAI's GPT-3
     prompt = f"{article['title']}\n\n{article['description']}\nSummarize the above in 5 sentences:"
+    typer.echo(f"Prompt:\n{prompt}\n")
     response = openai.Completion.create(
         engine='text-davinci-003',
         prompt=prompt,
