@@ -1,5 +1,3 @@
-Here's an updated README file that includes instructions on creating and/or entering a pipenv:
-
 # NewsAPI and OpenAI's GPT-3 Summarizer
 
 This script is a command-line tool that allows you to query NewsAPI for the top news article and use OpenAI's GPT-3 to summarize it.
@@ -37,5 +35,3 @@ You can also use the `--verbose` flag to get more detailed output.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE.md file for details.
-
-I hope this helps! Let me know if you have any other questions.

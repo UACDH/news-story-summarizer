@@ -5,7 +5,6 @@
 ##
 
 import typer
-import openai
 from rich.console import Console
 from news_engine import NewsEngine, NewsArticle
 from summarize_engine import SummarizeEngine
