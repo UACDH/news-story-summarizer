@@ -1,60 +1,50 @@
-#
+##
 # Author: Bahaa Abdulraheem
 # Description: This script is a cli tool that allows you to query newsapi
 #               for the top news article and use OpenAI's GPT-3 to summarize it.
-#
+##
 
 import typer
 import openai
-import config
-from newsapi import NewsApiClient
+from rich.console import Console
+from news_engine import NewsEngine, NewsArticle
+from summarize_engine import SummarizeEngine
 
 app = typer.Typer()
+console = Console(width=80)
 
-newsapi = NewsApiClient(api_key=config.newsapi_key)
-openai.api_key = config.openai_key
+news = NewsEngine()
+summarize_engine = SummarizeEngine()
 
 @app.command("summarize")
-def summarize(query: str=None):
+def summarize(query: str=None, show_usage: bool=False, url=None, verbose: bool=False):
     """Summarize the top news article for a given query"""
-    # Retrieve the top news article from NewsAPI
-    headlines = None
+    article = None
     if query:
-        typer.echo(f"Here's some top news about {query}:")
-        headlines = newsapi.get_everything(q=query, language='en', sort_by='popularity', page_size=1)
+        article = news.get_top_headline(query=query)
+    elif url:
+        article = news.get_article_from_url(url)
     else:
-        typer.echo("Here's some top news for you:")
-        headlines = newsapi.get_top_headlines(language='en', country='us', page_size=1)
+        article = news.get_top_headline()
 
-    if headlines['status'] != 'ok':
-        typer.echo(f"Error: {headlines['message']}")
-        return
-    if len(headlines['articles']) == 0:
-        typer.echo("Error: No articles found")
-        return
+    if not article:
+        raise Exception("Error: Got empty article from news engine!")
+
+    console.print(f"Author(s): {article.get_author()}", highlight=False)
+    console.print(f"Article: {article.get_title()}\n", highlight=False)
     
-    article = headlines['articles'][0]
-
     # Summarize the article using OpenAI's GPT-3
-    prompt = f"{article['title']}\n\n{article['description']}\nSummarize the above in 5 sentences:"
-    typer.echo(f"Prompt:\n{prompt}\n")
-    response = openai.Completion.create(
-        engine='text-davinci-003',
-        prompt=prompt,
-        max_tokens=200,
-        n=1,
-        temperature=1,
-    )
-    # Error handling
-    if response['choices'] == []:
-        typer.echo("Error: OpenAI returned an empty response")
-        return
-    summary = response.choices[0].text.strip()
+    prompt = f"{article.get_title()}\n{article.get_description()}\n{article.get_content()}\nSummarize the above in at most 5 sentences:"
 
-    # Print the title and summary
-    typer.echo(f"Article: {article['title']}\n")
-    typer.echo(f"Summary:\n{summary}\n")
-    typer.echo(f"Source: {article['url']}")
+    summary, tokens_used = None, None
+    with console.status("Summarizing...", spinner="bouncingBar"):
+        summary, tokens_used = summarize_engine.summarize(article)
+        
+    usage_string = (f"(used {tokens_used} tokens)" if show_usage else "")
+
+    console.print(f"Summary: {usage_string}\n")
+    console.print(f"{summary}\n", highlight=False)
+    console.print(f"Source: {article.get_url()}")
 
 if __name__ == '__main__':
     app()
