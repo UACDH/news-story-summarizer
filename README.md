@@ -1,4 +1,4 @@
-# NewsAPI and OpenAI's GPT-3 Summarizer
+# News AI Summarizer
 
 This script is a command-line tool that allows you to query NewsAPI for the top news article and use OpenAI's GPT-3 to summarize it.
 
